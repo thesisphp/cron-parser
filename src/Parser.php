@@ -25,7 +25,7 @@ final class Parser
     {
         return new self(
             normalizers: [new AliasExpressionNormalizer()],
-            extensions: [new StandardParserExtension()],
+            extensions: [new CallableParserExtension(new StandardParserExtension())],
         );
     }
 
@@ -60,15 +60,12 @@ final class Parser
             $cron,
         );
 
-        $exceptions = [];
         foreach ($this->extensions as $extension) {
-            try {
+            if ($extension->supports($cron)) {
                 return $extension->parse($cron);
-            } catch (ParserException $e) {
-                $exceptions[] = \sprintf('%s: %s', $extension::class, $e->getMessage());
             }
         }
 
-        throw new Exception\InvalidCronExpression(\sprintf('Expression is invalid: "%s".', implode('. ', $exceptions)));
+        throw new Exception\InvalidCronExpression(\sprintf('None of the extensions were able to parse the expression "%s".', $cron));
     }
 }

@@ -71,7 +71,23 @@ final class ParserTest extends TestCase
     public function testEveryDay(string $time, bool $match): void
     {
         self::assertSame($match, self::matchExpression('@daily', $time));
+        self::assertSame($match, self::matchExpression('@midnight', $time));
         self::assertSame($match, self::matchExpression('0 0 * * *', $time));
+    }
+
+    /**
+     * @param non-empty-string $time
+     */
+    #[TestWith(['2025-01-26 00:00:00', true])]
+    #[TestWith(['2025-02-02 00:00:00', true])]
+    #[TestWith(['2025-02-09 00:00:00', true])]
+    #[TestWith(['2025-02-23 00:00:00', true])]
+    #[TestWith(['2025-02-16 00:01:00', false])]
+    #[TestWith(['2025-02-16 00:00:01', false])]
+    public function testEveryWeek(string $time, bool $match): void
+    {
+        self::assertSame($match, self::matchExpression('@weekly', $time));
+        self::assertSame($match, self::matchExpression('0 0 * * 0', $time));
     }
 
     /**
@@ -92,16 +108,19 @@ final class ParserTest extends TestCase
     /**
      * @param non-empty-string $time
      */
-    #[TestWith(['2025-01-26 00:00:00', true])]
-    #[TestWith(['2025-02-02 00:00:00', true])]
-    #[TestWith(['2025-02-09 00:00:00', true])]
-    #[TestWith(['2025-02-23 00:00:00', true])]
-    #[TestWith(['2025-02-16 00:01:00', false])]
-    #[TestWith(['2025-02-16 00:00:01', false])]
-    public function testEveryWeek(string $time, bool $match): void
+    #[TestWith(['2025-01-01 00:00:00', true])]
+    #[TestWith(['2026-01-01 00:00:00', true])]
+    #[TestWith(['2027-01-01 00:00:00', true])]
+    #[TestWith(['2027-02-01 00:00:00', false])]
+    #[TestWith(['2027-01-02 00:00:00', false])]
+    #[TestWith(['2027-01-01 01:00:00', false])]
+    #[TestWith(['2027-01-01 00:01:00', false])]
+    #[TestWith(['2027-01-01 00:00:01', false])]
+    public function testEveryYear(string $time, bool $match): void
     {
-        self::assertSame($match, self::matchExpression('@weekly', $time));
-        self::assertSame($match, self::matchExpression('0 0 * * 0', $time));
+        self::assertSame($match, self::matchExpression('@yearly', $time));
+        self::assertSame($match, self::matchExpression('@annually', $time));
+        self::assertSame($match, self::matchExpression('0 0 1 1 *', $time));
     }
 
     /**

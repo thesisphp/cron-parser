@@ -7,7 +7,7 @@ namespace Thesis\Cron;
 /**
  * @api
  */
-final class StandardParserExtension implements ParserExtension
+final class StandardParserExtension
 {
     private const SECONDS = Internal\secondsRange;
     private const MINUTES = Internal\minutesRange;
@@ -16,7 +16,11 @@ final class StandardParserExtension implements ParserExtension
     private const MONTHS = Internal\monthsRange;
     private const WEEKDAYS = Internal\weekdayRange;
 
-    public function parse(string $cron): Expression
+    /**
+     * @param non-empty-string $cron
+     * @throws ParserException
+     */
+    public function __invoke(string $cron): Expression
     {
         $parts = preg_split('/\s+/', trim($cron));
         if ($parts === false || \count($parts) < 5 || \count($parts) > 6) {

@@ -22,6 +22,17 @@ final class CallableParserExtension implements ParserExtension
         $this->parse = $parse;
     }
 
+    public function supports(string $cron): bool
+    {
+        try {
+            $this->parse($cron);
+
+            return true;
+        } catch (ParserException) {
+            return false;
+        }
+    }
+
     public function parse(string $cron): Expression
     {
         return ($this->parse)($cron);
