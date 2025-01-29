@@ -10,6 +10,24 @@ namespace Thesis\Cron;
  */
 final class Expression implements \Stringable
 {
+    /** @var non-empty-array<non-negative-int, bool> */
+    private readonly array $seconds;
+
+    /** @var non-empty-array<non-negative-int, bool> */
+    private readonly array $minutes;
+
+    /** @var non-empty-array<non-negative-int, bool> */
+    private readonly array $hours;
+
+    /** @var non-empty-array<non-negative-int, bool> */
+    private readonly array $days;
+
+    /** @var non-empty-array<non-negative-int, bool> */
+    private readonly array $months;
+
+    /** @var non-empty-array<non-negative-int, bool> */
+    private readonly array $weekdays;
+
     /**
      * @param non-empty-string $cron
      * @param non-empty-list<non-negative-int> $seconds
@@ -21,13 +39,20 @@ final class Expression implements \Stringable
      */
     public function __construct(
         private readonly string $cron,
-        private readonly array $seconds,
-        private readonly array $minutes,
-        private readonly array $hours,
-        private readonly array $days,
-        private readonly array $months,
-        private readonly array $weekdays,
-    ) {}
+        array $seconds,
+        array $minutes,
+        array $hours,
+        array $days,
+        array $months,
+        array $weekdays,
+    ) {
+        $this->seconds = array_combine($seconds, array_fill(0, \count($seconds), true));
+        $this->minutes = array_combine($minutes, array_fill(0, \count($minutes), true));
+        $this->hours = array_combine($hours, array_fill(0, \count($hours), true));
+        $this->days = array_combine($days, array_fill(0, \count($days), true));
+        $this->months = array_combine($months, array_fill(0, \count($months), true));
+        $this->weekdays = array_combine($weekdays, array_fill(0, \count($weekdays), true));
+    }
 
     public function match(\DateTimeImmutable $time): bool
     {
@@ -49,10 +74,10 @@ final class Expression implements \Stringable
 
     /**
      * @param TimeFormat $format
-     * @param non-empty-list<non-negative-int> $range
+     * @param non-empty-array<non-negative-int, bool> $range
      */
     private static function inRange(\DateTimeImmutable $time, string $format, array $range): bool
     {
-        return \in_array((int) $time->format($format), $range, strict: true);
+        return isset($range[(int) $time->format($format)]);
     }
 }
