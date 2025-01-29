@@ -29,6 +29,7 @@ if (!\defined('Thesis\Cron\Internal\weekdayRange')) {
 }
 
 /**
+ * @internal
  * @param non-negative-int $start
  * @param positive-int $end
  * @return non-empty-array<non-negative-int, true>

@@ -12,21 +12,21 @@ final class Expression implements \Stringable
 {
     /**
      * @param non-empty-string $cron
+     * @param non-empty-list<non-negative-int> $seconds
      * @param non-empty-list<non-negative-int> $minutes
      * @param non-empty-list<non-negative-int> $hours
      * @param non-empty-list<non-negative-int> $days
      * @param non-empty-list<non-negative-int> $months
      * @param non-empty-list<non-negative-int> $weekdays
-     * @param non-empty-list<non-negative-int> $seconds
      */
     public function __construct(
         private readonly string $cron,
+        private readonly array $seconds,
         private readonly array $minutes,
         private readonly array $hours,
         private readonly array $days,
         private readonly array $months,
         private readonly array $weekdays,
-        private readonly array $seconds,
     ) {}
 
     public function match(\DateTimeImmutable $time): bool

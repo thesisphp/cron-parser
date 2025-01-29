@@ -30,12 +30,12 @@ final class StandardParserExtension implements ParserExtension
 
         return new Expression(
             cron: $cron,
+            seconds: $seconds,
             minutes: self::values(Internal\assertNonEmptyString($parts[++$index]), self::MINUTES),
             hours: self::values(Internal\assertNonEmptyString($parts[++$index]), self::HOURS),
             days: self::values(Internal\assertNonEmptyString($parts[++$index]), self::DAYS),
             months: self::values(Internal\assertNonEmptyString($parts[++$index]), self::MONTHS),
             weekdays: self::values(Internal\assertNonEmptyString($parts[++$index]), self::WEEKDAYS),
-            seconds: $seconds,
         );
     }
 
