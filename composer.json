@@ -1,12 +1,16 @@
 {
-    "name": "thesis/template",
-    "description": "Thesis Template",
+    "name": "thesis/cron-parser",
+    "description": "Easily extensible modern cron parser.",
     "license": "MIT",
     "type": "library",
     "authors": [
         {
             "name": "Valentin Udaltsov",
             "email": "udaltsov.valentin@gmail.com"
+        },
+        {
+            "name": "kafkiansky",
+            "email": "vadimzanfir@gmail.com"
         },
         {
             "name": "Thesis Team",
@@ -24,12 +28,16 @@
     },
     "autoload": {
         "psr-4": {
-            "Thesis\\Template\\": "src/"
-        }
+            "Thesis\\Cron\\": "src/"
+        },
+        "files": [
+            "src/Internal/assert.php",
+            "src/Internal/ranges.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
-            "Thesis\\Template\\": "tests/"
+            "Thesis\\Cron\\": "tests/"
         }
     },
     "config": {
@@ -51,6 +59,15 @@
         }
     },
     "scripts": {
+        "check": [
+            "@composer fixcs -- --dry-run",
+            "@phpstan",
+            "@composer validate",
+            "@composer normalize --dry-run",
+            "@check-require",
+            "@check-unused",
+            "@test"
+        ],
         "check-require": "tools/composer-require-checker/vendor/bin/composer-require-checker",
         "check-unused": "tools/composer-unused/vendor/bin/composer-unused",
         "fixcs": "tools/php-cs-fixer/vendor/bin/php-cs-fixer fix --diff --verbose",
