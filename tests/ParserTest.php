@@ -124,13 +124,62 @@ final class ParserTest extends TestCase
     }
 
     /**
+     * @param non-empty-string $time
+     */
+    #[TestWith(['2025-01-29 19:44:00', true])]
+    #[TestWith(['2025-01-29 19:44:01', false])]
+    #[TestWith(['2025-01-29 19:45:00', false])]
+    #[TestWith(['2025-01-29 19:46:00', true])]
+    #[TestWith(['2025-01-29 19:47:00', false])]
+    #[TestWith(['2025-01-29 19:48:00', true])]
+    #[TestWith(['2025-01-29 19:49:00', false])]
+    #[TestWith(['2025-01-29 19:50:00', true])]
+    public function testEvery2Minute(string $time, bool $match): void
+    {
+        self::assertSame($match, self::matchExpression('*/2 * * * *', $time));
+    }
+
+    /**
+     * @param non-empty-string $time
+     */
+    #[TestWith(['2025-01-29 19:49:00', true])]
+    #[TestWith(['2025-01-29 19:49:01', false])]
+    #[TestWith(['2025-01-29 19:50:00', false])]
+    #[TestWith(['2025-01-29 19:51:00', true])]
+    #[TestWith(['2025-01-29 19:52:00', false])]
+    #[TestWith(['2025-01-29 19:53:00', true])]
+    #[TestWith(['2025-01-29 19:54:00', false])]
+    #[TestWith(['2025-01-29 19:55:00', true])]
+    #[TestWith(['2025-01-29 20:01:00', true])]
+    public function testEveryUnevenMinute(string $time, bool $match): void
+    {
+        self::assertSame($match, self::matchExpression('1-59/2 * * * *', $time));
+    }
+
+    /**
+     * @param non-empty-string $cron
+     * @param non-empty-string $time
+     */
+    #[TestWith(['5 0 * 8 *', '2025-08-01 00:05:00', true])]
+    #[TestWith(['5 0 * 8 *', '2025-08-02 00:05:00', true])]
+    #[TestWith(['5 0 * 8 *', '2025-08-03 00:05:00', true])]
+    #[TestWith(['5 0 * 8 *', '2025-08-03 00:05:01', false])]
+    #[TestWith(['5 0 * 8 *', '2025-08-03 01:05:00', false])]
+    #[TestWith(['5 0 * 8 *', '2025-08-03 00:06:00', false])]
+    #[TestWith(['5 0 * 8 *', '2025-09-03 00:05:00', false])]
+    public function testComplex(string $cron, string $time, bool $match): void
+    {
+        self::assertSame($match, self::matchExpression($cron, $time));
+    }
+
+    /**
      * @param non-empty-string $cron
      * @param non-empty-string $time
      */
     private static function matchExpression(string $cron, string $time): bool
     {
-        $extension = Parser::standard();
+        $parser = Parser::standard();
 
-        return $extension->parse($cron)->match(new \DateTimeImmutable($time));
+        return $parser->parse($cron)->match(new \DateTimeImmutable($time));
     }
 }
