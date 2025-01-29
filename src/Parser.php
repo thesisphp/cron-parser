@@ -13,7 +13,7 @@ final class Parser
     private static array $expressions = [];
 
     /**
-     * @param non-empty-list<ExpressionNormalizer> $normalizers
+     * @param list<ExpressionNormalizer> $normalizers
      * @param non-empty-list<ParserExtension> $extensions
      */
     public function __construct(
