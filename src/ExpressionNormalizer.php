@@ -9,5 +9,8 @@ namespace Thesis\Cron;
  */
 interface ExpressionNormalizer
 {
+    /**
+     * @throws ParserException
+     */
     public function normalize(Expression $expression): Expression;
 }

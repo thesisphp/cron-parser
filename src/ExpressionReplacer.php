@@ -12,6 +12,7 @@ interface ExpressionReplacer
     /**
      * @param non-empty-string $cron
      * @return non-empty-string
+     * @throws ParserException
      */
     public function replace(string $cron): string;
 }
