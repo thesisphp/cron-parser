@@ -9,14 +9,10 @@ namespace Thesis\Cron;
  */
 interface ParserExtension
 {
-    /**
-     * @param non-empty-string $cron
-     */
-    public function supports(string $cron): bool;
+    public function supports(Expression $expression): bool;
 
     /**
-     * @param non-empty-string $cron
      * @throws ParserException
      */
-    public function parse(string $cron): Expression;
+    public function parse(Expression $expression): Time;
 }

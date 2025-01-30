@@ -6,7 +6,7 @@ namespace Thesis\Cron;
 
 /**
  * @api
- * @phpstan-type ParseExpression = callable(non-empty-string): Expression
+ * @phpstan-type ParseExpression = callable(Expression): Time
  */
 final class CallableParserExtension implements ParserExtension
 {
@@ -22,10 +22,10 @@ final class CallableParserExtension implements ParserExtension
         $this->parse = $parse;
     }
 
-    public function supports(string $cron): bool
+    public function supports(Expression $expression): bool
     {
         try {
-            $this->parse($cron);
+            $this->parse($expression);
 
             return true;
         } catch (ParserException) {
@@ -33,8 +33,8 @@ final class CallableParserExtension implements ParserExtension
         }
     }
 
-    public function parse(string $cron): Expression
+    public function parse(Expression $expression): Time
     {
-        return ($this->parse)($cron);
+        return ($this->parse)($expression);
     }
 }

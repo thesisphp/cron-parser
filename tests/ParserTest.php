@@ -8,6 +8,9 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @see https://crontab.guru/examples.html
+ */
 #[CoversClass(StandardParserExtension::class)]
 #[CoversClass(Parser::class)]
 final class ParserTest extends TestCase
@@ -154,6 +157,176 @@ final class ParserTest extends TestCase
     public function testEveryUnevenMinute(string $time, bool $match): void
     {
         self::assertSame($match, self::matchExpression('1-59/2 * * * *', $time));
+    }
+
+    /**
+     * @param non-empty-string $time
+     */
+    #[TestWith(['2025-01-29 11:00:00', true])]
+    #[TestWith(['2025-01-29 11:01:00', false])]
+    #[TestWith(['2025-01-29 11:15:00', true])]
+    #[TestWith(['2025-01-29 11:16:00', false])]
+    #[TestWith(['2025-01-29 11:30:00', true])]
+    public function testEveryQuarterHour(string $time, bool $match): void
+    {
+        self::assertSame($match, self::matchExpression('*/15 * * * *', $time));
+    }
+
+    /**
+     * @param non-empty-string $time
+     */
+    #[TestWith(['2025-01-29 11:30:00', true])]
+    #[TestWith(['2025-01-29 11:31:00', false])]
+    #[TestWith(['2025-01-29 12:30:00', true])]
+    #[TestWith(['2025-01-29 12:30:01', false])]
+    #[TestWith(['2025-01-29 13:30:00', true])]
+    public function testEveryHourAt30Minutes(string $time, bool $match): void
+    {
+        self::assertSame($match, self::matchExpression('30 * * * *', $time));
+    }
+
+    /**
+     * @param non-empty-string $time
+     */
+    #[TestWith(['2025-01-29 12:00:00', true])]
+    #[TestWith(['2025-01-29 13:00:00', false])]
+    #[TestWith(['2025-01-29 14:00:00', true])]
+    #[TestWith(['2025-01-29 14:01:00', false])]
+    #[TestWith(['2025-01-29 16:00:00', true])]
+    #[TestWith(['2025-01-29 16:00:01', false])]
+    public function testEvery2Hours(string $time, bool $match): void
+    {
+        self::assertSame($match, self::matchExpression('0 */2 * * *', $time));
+    }
+
+    /**
+     * @param non-empty-string $time
+     */
+    #[TestWith(['2025-01-29 08:00:00', false])]
+    #[TestWith(['2025-01-29 10:00:00', true])]
+    #[TestWith(['2025-01-29 11:00:00', true])]
+    #[TestWith(['2025-01-29 12:00:00', true])]
+    #[TestWith(['2025-01-29 12:01:00', false])]
+    #[TestWith(['2025-01-29 13:00:00', true])]
+    #[TestWith(['2025-01-29 13:00:01', false])]
+    #[TestWith(['2025-01-29 14:00:00', true])]
+    #[TestWith(['2025-01-29 18:00:00', false])]
+    public function testHourRange(string $time, bool $match): void
+    {
+        self::assertSame($match, self::matchExpression('0 9-17 * * *', $time));
+    }
+
+    /**
+     * @param non-empty-string $time
+     */
+    #[TestWith(['2025-02-03 00:00:00', true])]
+    #[TestWith(['2025-02-04 00:00:00', false])]
+    #[TestWith(['2025-02-10 00:00:00', true])]
+    #[TestWith(['2025-02-10 00:01:00', false])]
+    #[TestWith(['2025-02-17 00:00:00', true])]
+    #[TestWith(['2025-02-17 00:00:01', false])]
+    #[TestWith(['2025-02-24 00:00:00', true])]
+    public function testEveryMonday(string $time, bool $match): void
+    {
+        self::assertSame($match, self::matchExpression('0 0 * * MON', $time));
+        self::assertSame($match, self::matchExpression('0 0 * * 1', $time));
+    }
+
+    /**
+     * @param non-empty-string $time
+     */
+    #[TestWith(['2025-02-04 00:00:00', true])]
+    #[TestWith(['2025-02-05 00:00:00', false])]
+    #[TestWith(['2025-02-11 00:00:00', true])]
+    #[TestWith(['2025-02-11 00:01:00', false])]
+    #[TestWith(['2025-02-18 00:00:00', true])]
+    #[TestWith(['2025-02-18 00:00:01', false])]
+    #[TestWith(['2025-02-25 00:00:00', true])]
+    public function testEveryTuesday(string $time, bool $match): void
+    {
+        self::assertSame($match, self::matchExpression('0 0 * * TUE', $time));
+        self::assertSame($match, self::matchExpression('0 0 * * 2', $time));
+    }
+
+    /**
+     * @param non-empty-string $time
+     */
+    #[TestWith(['2025-02-05 00:00:00', true])]
+    #[TestWith(['2025-02-06 00:00:00', false])]
+    #[TestWith(['2025-02-12 00:00:00', true])]
+    #[TestWith(['2025-02-12 00:01:00', false])]
+    #[TestWith(['2025-02-19 00:00:00', true])]
+    #[TestWith(['2025-02-19 00:00:01', false])]
+    #[TestWith(['2025-02-26 00:00:00', true])]
+    public function testEveryWednesday(string $time, bool $match): void
+    {
+        self::assertSame($match, self::matchExpression('0 0 * * WED', $time));
+        self::assertSame($match, self::matchExpression('0 0 * * 3', $time));
+    }
+
+    /**
+     * @param non-empty-string $time
+     */
+    #[TestWith(['2025-02-06 00:00:00', true])]
+    #[TestWith(['2025-02-07 00:00:00', false])]
+    #[TestWith(['2025-02-13 00:00:00', true])]
+    #[TestWith(['2025-02-13 00:01:00', false])]
+    #[TestWith(['2025-02-20 00:00:00', true])]
+    #[TestWith(['2025-02-20 00:00:01', false])]
+    #[TestWith(['2025-02-27 00:00:00', true])]
+    public function testEveryThursday(string $time, bool $match): void
+    {
+        self::assertSame($match, self::matchExpression('0 0 * * THU', $time));
+        self::assertSame($match, self::matchExpression('0 0 * * 4', $time));
+    }
+
+    /**
+     * @param non-empty-string $time
+     */
+    #[TestWith(['2025-02-07 00:00:00', true])]
+    #[TestWith(['2025-02-08 00:00:00', false])]
+    #[TestWith(['2025-02-14 00:00:00', true])]
+    #[TestWith(['2025-02-14 00:01:00', false])]
+    #[TestWith(['2025-02-21 00:00:00', true])]
+    #[TestWith(['2025-02-21 00:00:01', false])]
+    #[TestWith(['2025-02-28 00:00:00', true])]
+    public function testEveryFriday(string $time, bool $match): void
+    {
+        self::assertSame($match, self::matchExpression('0 0 * * FRI', $time));
+        self::assertSame($match, self::matchExpression('0 0 * * 5', $time));
+    }
+
+    /**
+     * @param non-empty-string $time
+     */
+    #[TestWith(['2025-02-08 00:00:00', true])]
+    #[TestWith(['2025-02-09 00:00:00', false])]
+    #[TestWith(['2025-02-15 00:00:00', true])]
+    #[TestWith(['2025-02-15 00:01:00', false])]
+    #[TestWith(['2025-02-22 00:00:00', true])]
+    #[TestWith(['2025-02-22 00:00:01', false])]
+    #[TestWith(['2025-03-01 00:00:00', true])]
+    public function testEverySaturday(string $time, bool $match): void
+    {
+        self::assertSame($match, self::matchExpression('0 0 * * SAT', $time));
+        self::assertSame($match, self::matchExpression('0 0 * * 6', $time));
+    }
+
+    /**
+     * @param non-empty-string $time
+     */
+    #[TestWith(['2025-02-09 00:00:00', true])]
+    #[TestWith(['2025-02-10 00:00:00', false])]
+    #[TestWith(['2025-02-16 00:00:00', true])]
+    #[TestWith(['2025-02-16 00:01:00', false])]
+    #[TestWith(['2025-02-23 00:00:00', true])]
+    #[TestWith(['2025-02-23 00:00:01', false])]
+    #[TestWith(['2025-03-02 00:00:00', true])]
+    public function testEverySunday(string $time, bool $match): void
+    {
+        self::assertSame($match, self::matchExpression('0 0 * * SUN', $time));
+        self::assertSame($match, self::matchExpression('0 0 * * 0', $time));
+        self::assertSame($match, self::matchExpression('0 0 * * 7', $time));
     }
 
     /**

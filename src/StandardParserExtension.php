@@ -17,29 +17,18 @@ final class StandardParserExtension
     private const WEEKDAYS = Internal\weekdayRange;
 
     /**
-     * @param non-empty-string $cron
      * @throws ParserException
      */
-    public function __invoke(string $cron): Expression
+    public function __invoke(Expression $expression): Time
     {
-        $parts = preg_split('/\s+/', trim($cron));
-        if ($parts === false || \count($parts) < 5 || \count($parts) > 6) {
-            throw new Exception\InvalidCronExpression('The cron expression is invalid.');
-        }
-
-        [$index, $seconds] = match (\count($parts)) {
-            6 => [0, self::values(Internal\assertNonEmptyString($parts[0]), self::SECONDS)],
-            default => [-1, [0]],
-        };
-
-        return new Expression(
-            cron: $cron,
-            seconds: $seconds,
-            minutes: self::values(Internal\assertNonEmptyString($parts[++$index]), self::MINUTES),
-            hours: self::values(Internal\assertNonEmptyString($parts[++$index]), self::HOURS),
-            days: self::values(Internal\assertNonEmptyString($parts[++$index]), self::DAYS),
-            months: self::values(Internal\assertNonEmptyString($parts[++$index]), self::MONTHS),
-            weekdays: self::values(Internal\assertNonEmptyString($parts[++$index]), self::WEEKDAYS),
+        return new Time(
+            cron: $expression->cron,
+            seconds: $expression->seconds !== null ? self::values(Internal\assertNonEmptyString($expression->seconds), self::SECONDS) : [0],
+            minutes: self::values(Internal\assertNonEmptyString($expression->minutes), self::MINUTES),
+            hours: self::values(Internal\assertNonEmptyString($expression->hours), self::HOURS),
+            days: self::values(Internal\assertNonEmptyString($expression->days), self::DAYS),
+            months: self::values(Internal\assertNonEmptyString($expression->months), self::MONTHS),
+            weekdays: self::values(Internal\assertNonEmptyString($expression->weekdays), self::WEEKDAYS),
         );
     }
 

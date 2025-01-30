@@ -4,80 +4,150 @@ declare(strict_types=1);
 
 namespace Thesis\Cron;
 
+use Thesis\Cron\Exception\InvalidCronExpression;
+
 /**
  * @api
- * @phpstan-type TimeFormat = 's'|'i'|'H'|'d'|'m'|'w'
  */
-final class Expression implements \Stringable
+final class Expression
 {
-    /** @var non-empty-array<non-negative-int, bool> */
-    private readonly array $seconds;
+    /**
+     * @param non-empty-string $cron
+     * @throws ParserException
+     */
+    public static function parse(string $cron): self
+    {
+        /** @var false|non-empty-list<non-empty-string> $fields */
+        $fields = preg_split('/\s+/', trim($cron));
+        if ($fields === false || \count($fields) < 5 || \count($fields) > 6) {
+            throw new InvalidCronExpression('The cron expression is invalid.');
+        }
 
-    /** @var non-empty-array<non-negative-int, bool> */
-    private readonly array $minutes;
+        $index = \count($fields) === 6 ? 0 : -1;
 
-    /** @var non-empty-array<non-negative-int, bool> */
-    private readonly array $hours;
-
-    /** @var non-empty-array<non-negative-int, bool> */
-    private readonly array $days;
-
-    /** @var non-empty-array<non-negative-int, bool> */
-    private readonly array $months;
-
-    /** @var non-empty-array<non-negative-int, bool> */
-    private readonly array $weekdays;
+        return new self(
+            cron: $cron,
+            minutes: $fields[++$index],
+            hours: $fields[++$index],
+            days: $fields[++$index],
+            months: $fields[++$index],
+            weekdays: $fields[++$index],
+            seconds: \count($fields) === 6 ? $fields[0] : null,
+        );
+    }
 
     /**
      * @param non-empty-string $cron
-     * @param non-empty-list<non-negative-int> $seconds
-     * @param non-empty-list<non-negative-int> $minutes
-     * @param non-empty-list<non-negative-int> $hours
-     * @param non-empty-list<non-negative-int> $days
-     * @param non-empty-list<non-negative-int> $months
-     * @param non-empty-list<non-negative-int> $weekdays
+     * @param non-empty-string $minutes
+     * @param non-empty-string $hours
+     * @param non-empty-string $days
+     * @param non-empty-string $months
+     * @param non-empty-string $weekdays
+     * @param ?non-empty-string $seconds
      */
     public function __construct(
-        private readonly string $cron,
-        array $seconds,
-        array $minutes,
-        array $hours,
-        array $days,
-        array $months,
-        array $weekdays,
-    ) {
-        $this->seconds = array_combine($seconds, array_fill(0, \count($seconds), true));
-        $this->minutes = array_combine($minutes, array_fill(0, \count($minutes), true));
-        $this->hours = array_combine($hours, array_fill(0, \count($hours), true));
-        $this->days = array_combine($days, array_fill(0, \count($days), true));
-        $this->months = array_combine($months, array_fill(0, \count($months), true));
-        $this->weekdays = array_combine($weekdays, array_fill(0, \count($weekdays), true));
-    }
+        public readonly string $cron,
+        public readonly string $minutes,
+        public readonly string $hours,
+        public readonly string $days,
+        public readonly string $months,
+        public readonly string $weekdays,
+        public readonly ?string $seconds = null,
+    ) {}
 
-    public function match(\DateTimeImmutable $time): bool
+    /**
+     * @param non-empty-string $minutes
+     */
+    public function withMinutes(string $minutes): self
     {
-        return self::inRange($time, 's', $this->seconds)
-            && self::inRange($time, 'i', $this->minutes)
-            && self::inRange($time, 'H', $this->hours)
-            && self::inRange($time, 'd', $this->days)
-            && self::inRange($time, 'm', $this->months)
-            && self::inRange($time, 'w', $this->weekdays);
+        return new self(
+            $this->cron,
+            $minutes,
+            $this->hours,
+            $this->days,
+            $this->months,
+            $this->weekdays,
+            $this->seconds,
+        );
     }
 
     /**
-     * @return non-empty-string
+     * @param non-empty-string $hours
      */
-    public function __toString(): string
+    public function withHours(string $hours): self
     {
-        return $this->cron;
+        return new self(
+            $this->cron,
+            $this->minutes,
+            $hours,
+            $this->days,
+            $this->months,
+            $this->weekdays,
+            $this->seconds,
+        );
     }
 
     /**
-     * @param TimeFormat $format
-     * @param non-empty-array<non-negative-int, bool> $range
+     * @param non-empty-string $days
      */
-    private static function inRange(\DateTimeImmutable $time, string $format, array $range): bool
+    public function withDays(string $days): self
     {
-        return isset($range[(int) $time->format($format)]);
+        return new self(
+            $this->cron,
+            $this->minutes,
+            $this->hours,
+            $days,
+            $this->months,
+            $this->weekdays,
+            $this->seconds,
+        );
+    }
+
+    /**
+     * @param non-empty-string $months
+     */
+    public function withMonths(string $months): self
+    {
+        return new self(
+            $this->cron,
+            $this->minutes,
+            $this->hours,
+            $this->days,
+            $months,
+            $this->weekdays,
+            $this->seconds,
+        );
+    }
+
+    /**
+     * @param non-empty-string $weekdays
+     */
+    public function withWeekdays(string $weekdays): self
+    {
+        return new self(
+            $this->cron,
+            $this->minutes,
+            $this->hours,
+            $this->days,
+            $this->months,
+            $weekdays,
+            $this->seconds,
+        );
+    }
+
+    /**
+     * @param ?non-empty-string $seconds
+     */
+    public function withSeconds(?string $seconds = null): self
+    {
+        return new self(
+            $this->cron,
+            $this->minutes,
+            $this->hours,
+            $this->days,
+            $this->months,
+            $this->weekdays,
+            $seconds,
+        );
     }
 }

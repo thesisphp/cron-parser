@@ -9,9 +9,5 @@ namespace Thesis\Cron;
  */
 interface ExpressionNormalizer
 {
-    /**
-     * @param non-empty-string $cron
-     * @return non-empty-string
-     */
-    public function normalize(string $cron): string;
+    public function normalize(Expression $expression): Expression;
 }

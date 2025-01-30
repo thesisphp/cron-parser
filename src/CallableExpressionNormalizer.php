@@ -6,7 +6,7 @@ namespace Thesis\Cron;
 
 /**
  * @api
- * @phpstan-type NormalizeExpression = callable(non-empty-string): non-empty-string
+ * @phpstan-type NormalizeExpression = callable(Expression): Expression
  */
 final class CallableExpressionNormalizer implements ExpressionNormalizer
 {
@@ -22,8 +22,8 @@ final class CallableExpressionNormalizer implements ExpressionNormalizer
         $this->normalize = $normalize;
     }
 
-    public function normalize(string $cron): string
+    public function normalize(Expression $expression): Expression
     {
-        return ($this->normalize)($cron);
+        return ($this->normalize)($expression);
     }
 }

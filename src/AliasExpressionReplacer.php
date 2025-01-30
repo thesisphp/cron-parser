@@ -7,7 +7,7 @@ namespace Thesis\Cron;
 /**
  * @api
  */
-final class AliasExpressionNormalizer implements ExpressionNormalizer
+final class AliasExpressionReplacer implements ExpressionReplacer
 {
     /** @var array<non-empty-string, non-empty-string> */
     private const KNOWN = [
@@ -32,7 +32,7 @@ final class AliasExpressionNormalizer implements ExpressionNormalizer
         $this->aliases = self::KNOWN + $aliases;
     }
 
-    public function normalize(string $cron): string
+    public function replace(string $cron): string
     {
         return $this->aliases[$cron] ?? $cron;
     }
