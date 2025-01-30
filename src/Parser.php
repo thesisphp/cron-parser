@@ -27,7 +27,11 @@ final class Parser
         return new self(
             extension: new StandardParserExtension(),
             replacers: [new AliasExpressionReplacer()],
-            normalizers: [new SundayExpressionNormalizer(), new WeekdayExpressionNormalizer()],
+            normalizers: [
+                new SundayExpressionNormalizer(),
+                new WeekdayExpressionNormalizer(),
+                new MonthExpressionNormalizer(),
+            ],
         );
     }
 

@@ -22,6 +22,6 @@ final class WeekdayExpressionNormalizer implements ExpressionNormalizer
 
     public function normalize(Expression $expression): Expression
     {
-        return $expression->withWeekdays(self::WEEKDAY_TO_SEQUENCE[$expression->weekdays] ?? $expression->weekdays);
+        return $expression->withWeekdays(self::WEEKDAY_TO_SEQUENCE[strtoupper($expression->weekdays)] ?? $expression->weekdays);
     }
 }
