@@ -29,7 +29,7 @@ declare(strict_types=1);
 use Thesis\Cron;
 
 $parser = new Cron\Parser(
-    extensions: [new Cron\StandardParserExtension()],
+    extension: new Cron\StandardParserExtension(),
     replacers: [new Cron\AliasExpressionReplacer(['@secondly' => '* * * * * *'])],
     normalizers: [new Cron\SundayExpressionNormalizer(), new Cron\WeekdayExpressionNormalizer()],
 );

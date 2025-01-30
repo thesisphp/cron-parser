@@ -13,12 +13,11 @@ final class Parser
     private static array $times = [];
 
     /**
-     * @param non-empty-list<ParserExtension> $extensions
      * @param list<ExpressionReplacer> $replacers
      * @param list<ExpressionNormalizer> $normalizers
      */
     public function __construct(
-        private readonly array $extensions,
+        private readonly ParserExtension $extension,
         private readonly array $replacers = [],
         private readonly array $normalizers = [],
     ) {}
@@ -26,7 +25,7 @@ final class Parser
     public static function standard(): self
     {
         return new self(
-            extensions: [new StandardParserExtension()],
+            extension: new StandardParserExtension(),
             replacers: [new AliasExpressionReplacer()],
             normalizers: [new SundayExpressionNormalizer(), new WeekdayExpressionNormalizer()],
         );
@@ -67,12 +66,6 @@ final class Parser
             )),
         );
 
-        foreach ($this->extensions as $extension) {
-            if ($extension->supports($expression)) {
-                return $extension->parse($expression);
-            }
-        }
-
-        throw new Exception\InvalidCronExpression(\sprintf('None of the extensions were able to parse the expression "%s".', $cron));
+        return $this->extension->parse($expression);
     }
 }

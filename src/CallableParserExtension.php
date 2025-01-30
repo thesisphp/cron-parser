@@ -22,17 +22,6 @@ final class CallableParserExtension implements ParserExtension
         $this->parse = $parse;
     }
 
-    public function supports(Expression $expression): bool
-    {
-        try {
-            $this->parse($expression);
-
-            return true;
-        } catch (ParserException) {
-            return false;
-        }
-    }
-
     public function parse(Expression $expression): Time
     {
         return ($this->parse)($expression);

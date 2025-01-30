@@ -9,8 +9,6 @@ namespace Thesis\Cron;
  */
 interface ParserExtension
 {
-    public function supports(Expression $expression): bool;
-
     /**
      * @throws ParserException
      */

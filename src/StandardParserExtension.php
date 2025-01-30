@@ -16,11 +16,6 @@ final class StandardParserExtension implements ParserExtension
     private const MONTHS = Internal\monthsRange;
     private const WEEKDAYS = Internal\weekdayRange;
 
-    public function supports(Expression $expression): bool
-    {
-        return true;
-    }
-
     /**
      * @throws ParserException
      */
