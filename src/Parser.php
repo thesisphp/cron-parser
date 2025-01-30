@@ -26,16 +26,9 @@ final class Parser
     public static function standard(): self
     {
         return new self(
-            extensions: [
-                new CallableParserExtension(new StandardParserExtension()),
-            ],
-            replacers: [
-                new AliasExpressionReplacer(),
-            ],
-            normalizers: [
-                new SundayExpressionNormalizer(),
-                new WeekdayExpressionNormalizer(),
-            ],
+            extensions: [new StandardParserExtension()],
+            replacers: [new AliasExpressionReplacer()],
+            normalizers: [new SundayExpressionNormalizer(), new WeekdayExpressionNormalizer()],
         );
     }
 

@@ -7,6 +7,8 @@ namespace Thesis\Cron;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
+use Thesis\Cron\Exception\CronValueIsOutOfRange;
+use Thesis\Cron\Exception\InvalidCronExpression;
 
 /**
  * @see https://crontab.guru/examples.html
@@ -330,6 +332,46 @@ final class ParserTest extends TestCase
     }
 
     /**
+     * @param non-empty-string $time
+     */
+    #[TestWith(['2025-01-31 00:00:00', true])]
+    #[TestWith(['2025-02-01 00:00:00', false])]
+    #[TestWith(['2025-02-02 00:00:00', false])]
+    #[TestWith(['2025-02-03 00:00:00', true])]
+    #[TestWith(['2025-02-03 01:00:00', false])]
+    #[TestWith(['2025-02-04 00:00:00', true])]
+    #[TestWith(['2025-02-04 00:10:00', false])]
+    #[TestWith(['2025-02-05 00:00:00', true])]
+    #[TestWith(['2025-02-05 00:00:10', false])]
+    #[TestWith(['2025-02-06 00:00:00', true])]
+    #[TestWith(['2025-02-07 00:00:00', true])]
+    #[TestWith(['2025-02-08 00:00:00', false])]
+    public function testWeekdaysOnly(string $time, bool $match): void
+    {
+        self::assertSame($match, self::matchExpression('0 0 * * 1-5', $time));
+    }
+
+    /**
+     * @param non-empty-string $time
+     */
+    #[TestWith(['2025-02-01 00:00:00', true])]
+    #[TestWith(['2025-02-01 01:00:00', false])]
+    #[TestWith(['2025-02-02 00:00:00', true])]
+    #[TestWith(['2025-02-03 00:00:00', false])]
+    #[TestWith(['2025-02-04 00:00:00', false])]
+    #[TestWith(['2025-02-05 00:00:00', false])]
+    #[TestWith(['2025-02-06 00:00:00', false])]
+    #[TestWith(['2025-02-07 00:00:00', false])]
+    #[TestWith(['2025-02-08 00:00:00', true])]
+    #[TestWith(['2025-02-08 00:01:00', false])]
+    #[TestWith(['2025-02-09 00:00:00', true])]
+    #[TestWith(['2025-02-09 00:00:01', false])]
+    public function testEveryWeekend(string $time, bool $match): void
+    {
+        self::assertSame($match, self::matchExpression('0 0 * * 6,0', $time));
+    }
+
+    /**
      * @param non-empty-string $cron
      * @param non-empty-string $time
      */
@@ -343,6 +385,53 @@ final class ParserTest extends TestCase
     public function testComplex(string $cron, string $time, bool $match): void
     {
         self::assertSame($match, self::matchExpression($cron, $time));
+    }
+
+    public function testTooShortCron(): void
+    {
+        self::expectException(InvalidCronExpression::class);
+        Parser::standard()->parse('* * *');
+    }
+
+    public function testTooLongCron(): void
+    {
+        self::expectException(InvalidCronExpression::class);
+        Parser::standard()->parse('* * * * * * *');
+    }
+
+    public function testNegativeNumbersInCron(): void
+    {
+        self::expectException(InvalidCronExpression::class);
+        self::expectExceptionMessage('Only positive numbers are allowed, but "-1" given.');
+        Parser::standard()->parse('-1 * * * *');
+    }
+
+    public function testOutOfRange(): void
+    {
+        self::expectException(CronValueIsOutOfRange::class);
+        self::expectExceptionMessage('Number "8" in part "4-8" is out of range.');
+        Parser::standard()->parse('* * * * 4-8');
+    }
+
+    public function testNotANumber(): void
+    {
+        self::expectException(InvalidCronExpression::class);
+        self::expectExceptionMessage('The cron part value "o" is invalid.');
+        Parser::standard()->parse('* * * * o');
+    }
+
+    public function testInvalidInterval(): void
+    {
+        self::expectException(InvalidCronExpression::class);
+        self::expectExceptionMessage('Interval "2--2" must contain exactly two values.');
+        Parser::standard()->parse('* 2--2 * * *');
+    }
+
+    public function testIntervalOverlapped(): void
+    {
+        self::expectException(InvalidCronExpression::class);
+        self::expectExceptionMessage('Right value in interval "3-2" must be greater than left.');
+        Parser::standard()->parse('* 3-2 * * *');
     }
 
     /**

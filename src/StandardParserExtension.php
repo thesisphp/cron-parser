@@ -7,7 +7,7 @@ namespace Thesis\Cron;
 /**
  * @api
  */
-final class StandardParserExtension
+final class StandardParserExtension implements ParserExtension
 {
     private const SECONDS = Internal\secondsRange;
     private const MINUTES = Internal\minutesRange;
@@ -16,10 +16,15 @@ final class StandardParserExtension
     private const MONTHS = Internal\monthsRange;
     private const WEEKDAYS = Internal\weekdayRange;
 
+    public function supports(Expression $expression): bool
+    {
+        return true;
+    }
+
     /**
      * @throws ParserException
      */
-    public function __invoke(Expression $expression): Time
+    public function parse(Expression $expression): Time
     {
         return new Time(
             cron: $expression->cron,
@@ -57,7 +62,7 @@ final class StandardParserExtension
 
         foreach ($values as $value) {
             if (!isset($range[$value])) {
-                throw new Exception\InvalidCronExpression(\sprintf('Unexpected number "%d" in part "%s".', $value, $part));
+                throw new Exception\CronValueIsOutOfRange(\sprintf('Number "%d" in part "%s" is out of range.', $value, $part));
             }
         }
 
