@@ -69,6 +69,7 @@ final class Time implements
             $time = $time->modify('+1 second');
         }
 
+        // TODO: is it possible to avoid the loop here?
         do {
             $time = $this->shift($time);
         } while (!$this->match($time));
