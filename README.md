@@ -8,6 +8,8 @@ composer require thesis/cron-parser
 
 ## Basic usage
 
+### Matching date
+
 ```php
 <?php
 
@@ -16,7 +18,39 @@ declare(strict_types=1);
 use Thesis\Cron;
 
 $parser = Cron\Parser::standard();
-echo $parser->parse('* * * * *')->match(new \DateTimeImmutable('2025-01-29 00:00:00')); // true
+$time = $parser->parse('* * * * *'); 
+echo $time->match(new \DateTimeImmutable('2025-01-29 00:00:00')); // true
+```
+
+### Getting next date
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use Thesis\Cron;
+
+$parser = Cron\Parser::standard();
+$time = $parser->parse('* * * * *');
+echo $time->tick(new \DateTimeImmutable('2025-01-29 00:00:00')); // 2025-01-29 00:01:00 
+```
+
+### Iterating on `Thesis\Cron\Time`
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use Thesis\Cron;
+
+$parser = Cron\Parser::standard();
+$time = $parser->parse('* * * * *');
+
+foreach ($time->iterator(new \DateTimeImmutable('2025-01-29 00:00:00'), iterations: 10) as $it) {
+    echo $it->format('Y-m-d H:i:s');
+}
 ```
 
 ## Configure parser

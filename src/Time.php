@@ -6,27 +6,24 @@ namespace Thesis\Cron;
 
 /**
  * @api
- * @phpstan-type TimeFormat = 's'|'i'|'H'|'d'|'m'|'w'
+ * @template-implements \IteratorAggregate<\DateTimeImmutable>
  */
-final class Time implements \Stringable
+final class Time implements
+    \IteratorAggregate,
+    \Stringable,
+    \JsonSerializable
 {
-    /** @var non-empty-array<non-negative-int, bool> */
-    private readonly array $seconds;
+    private readonly Internal\Range $seconds;
 
-    /** @var non-empty-array<non-negative-int, bool> */
-    private readonly array $minutes;
+    private readonly Internal\Range $minutes;
 
-    /** @var non-empty-array<non-negative-int, bool> */
-    private readonly array $hours;
+    private readonly Internal\Range $hours;
 
-    /** @var non-empty-array<non-negative-int, bool> */
-    private readonly array $days;
+    private readonly Internal\Range $days;
 
-    /** @var non-empty-array<non-negative-int, bool> */
-    private readonly array $months;
+    private readonly Internal\Range $months;
 
-    /** @var non-empty-array<non-negative-int, bool> */
-    private readonly array $weekdays;
+    private readonly Internal\Range $weekdays;
 
     /**
      * @param non-empty-string $cron
@@ -46,22 +43,55 @@ final class Time implements \Stringable
         array $months,
         array $weekdays,
     ) {
-        $this->seconds = array_combine($seconds, array_fill(0, \count($seconds), true));
-        $this->minutes = array_combine($minutes, array_fill(0, \count($minutes), true));
-        $this->hours = array_combine($hours, array_fill(0, \count($hours), true));
-        $this->days = array_combine($days, array_fill(0, \count($days), true));
-        $this->months = array_combine($months, array_fill(0, \count($months), true));
-        $this->weekdays = array_combine($weekdays, array_fill(0, \count($weekdays), true));
+        $this->seconds = new Internal\Range($seconds);
+        $this->minutes = new Internal\Range($minutes);
+        $this->hours = new Internal\Range($hours);
+        $this->days = new Internal\Range($days);
+        $this->months = new Internal\Range($months);
+        $this->weekdays = new Internal\Range($weekdays);
     }
 
     public function match(\DateTimeImmutable $time): bool
     {
-        return self::inRange($time, 's', $this->seconds)
-            && self::inRange($time, 'i', $this->minutes)
-            && self::inRange($time, 'H', $this->hours)
-            && self::inRange($time, 'd', $this->days)
-            && self::inRange($time, 'm', $this->months)
-            && self::inRange($time, 'w', $this->weekdays);
+        $timepoint = Internal\Timepoint::fromDateTime($time);
+
+        return $this->seconds->in($timepoint->second)
+            && $this->minutes->in($timepoint->minute)
+            && $this->hours->in($timepoint->hour)
+            && $this->days->in($timepoint->day)
+            && $this->months->in($timepoint->month)
+            && $this->weekdays->in($timepoint->weekday);
+    }
+
+    public function tick(\DateTimeImmutable $time): \DateTimeImmutable
+    {
+        if ($this->match($time)) {
+            $time = $time->modify('+1 second');
+        }
+
+        do {
+            $time = $this->shift($time);
+        } while (!$this->match($time));
+
+        return $time;
+    }
+
+    /**
+     * @param positive-int $iterations
+     * @return \Traversable<\DateTimeImmutable>
+     */
+    public function iterator(
+        \DateTimeImmutable $time = new \DateTimeImmutable('NOW', new \DateTimeZone('UTC')),
+        int $iterations = PHP_INT_MAX,
+    ): \Traversable {
+        while ($iterations-- >= 0) {
+            yield $time = $this->tick($time);
+        }
+    }
+
+    public function getIterator(): \Traversable
+    {
+        yield from $this->iterator();
     }
 
     /**
@@ -73,11 +103,47 @@ final class Time implements \Stringable
     }
 
     /**
-     * @param TimeFormat $format
-     * @param non-empty-array<non-negative-int, bool> $range
+     * @return array{
+     *     seconds: non-empty-list<non-negative-int>,
+     *     minutes: non-empty-list<non-negative-int>,
+     *     hours: non-empty-list<non-negative-int>,
+     *     days: non-empty-list<non-negative-int>,
+     *     months: non-empty-list<non-negative-int>,
+     *     weekdays: non-empty-list<non-negative-int>,
+     * }
      */
-    private static function inRange(\DateTimeImmutable $time, string $format, array $range): bool
+    public function jsonSerialize(): array
     {
-        return isset($range[(int) $time->format($format)]);
+        return [
+            'seconds' => $this->seconds->vector,
+            'minutes' => $this->minutes->vector,
+            'hours' => $this->hours->vector,
+            'days' => $this->days->vector,
+            'months' => $this->months->vector,
+            'weekdays' => $this->weekdays->vector,
+        ];
+    }
+
+    private function shift(\DateTimeImmutable $time): \DateTimeImmutable
+    {
+        $timepoint = Internal\Timepoint::fromDateTime($time);
+
+        return match (true) {
+            !$this->months->in($timepoint->month) => $time
+                ->setTime(0, 0)
+                ->setDate($timepoint->year, $timepoint->month, 1)
+                ->modify('+1 month'),
+            !($this->days->in($timepoint->day) && $this->weekdays->in($timepoint->weekday)) => $time
+                ->setTime(0, 0)
+                ->modify('+1 day'),
+            !$this->hours->in($timepoint->hour) => $time
+                ->setTime($timepoint->hour, 0)
+                ->modify('+1 hour'),
+            !$this->minutes->in($timepoint->minute) => $time
+                ->modify('+1 minute'),
+            !$this->seconds->in($timepoint->second) => $time
+                ->modify('+1 second'),
+            default => $time,
+        };
     }
 }
